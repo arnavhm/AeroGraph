@@ -1,0 +1,50 @@
+{
+  "meta": {
+    "generated": "2026-07-23",
+    "engine_source": "EngineWatch /api/predict, dataset FD001, commit ecfcab5e, fetched 2026-07-22",
+    "airport_source": "EUROCONTROL Airport_Arrival_ATFM_Delay, 365d window to 2026-06-15",
+    "schedule_basis": "synthetic-adversarial",
+    "snapshot_date": "2026-06-15",
+    "ranking_rule": "worst engine per aircraft = max(risk_score); filter risk_state='Critical' BEFORE ranking"
+  },
+  "airports": [
+    {"icao": "EHAM", "expected_wx_delay_min_per_arrival": 2.378, "has_hub": false},
+    {"icao": "LEBL", "expected_wx_delay_min_per_arrival": 1.260, "has_hub": false},
+    {"icao": "EGLL", "expected_wx_delay_min_per_arrival": 1.182, "has_hub": true},
+    {"icao": "LFPO", "expected_wx_delay_min_per_arrival": 0.555, "has_hub": false},
+    {"icao": "ESSA", "expected_wx_delay_min_per_arrival": 0.081, "has_hub": true},
+    {"icao": "EDDL", "expected_wx_delay_min_per_arrival": 0.038, "has_hub": true}
+  ],
+  "maintenance_hubs": [
+    {"hub_code": "MX-LHR", "airport": "EGLL", "min_swap_duration_minutes": 60},
+    {"hub_code": "MX-DUS", "airport": "EDDL", "min_swap_duration_minutes": 90},
+    {"hub_code": "MX-ARN", "airport": "ESSA", "min_swap_duration_minutes": 120}
+  ],
+  "aircraft": [
+    {"tail": "G-AGDA", "engines": [24, 26], "assigned_flight": "AG101", "located_at": "EGLL"},
+    {"tail": "G-AGDB", "engines": [56, 73], "assigned_flight": "AG102", "located_at": "EGLL"},
+    {"tail": "G-AGDC", "engines": [63, 39], "assigned_flight": "AG103", "located_at": "EGLL"},
+    {"tail": "SE-AGDD", "engines": [15, 87], "assigned_flight": "AG104", "located_at": "ESSA"},
+    {"tail": "D-AGDE", "engines": [71, 1], "assigned_flight": "AG105", "located_at": "EDDL"},
+    {"tail": "G-AGSA", "engines": [99, 59], "assigned_flight": null, "located_at": "EGLL", "ready_at": "2026-06-15T13:25:00"},
+    {"tail": "G-AGSB", "engines": [54, 78], "assigned_flight": null, "located_at": "EGLL", "ready_at": "2026-06-15T13:35:00"},
+    {"tail": "D-AGSC", "engines": [96, 65], "assigned_flight": null, "located_at": "EDDL", "ready_at": "2026-06-15T09:00:00"}
+  ],
+  "flights": [
+    {"flight_no": "AG101", "origin": "EGLL", "destination": "EHAM", "scheduled_departure": "2026-06-15T14:30:00", "scheduled_arrival": "2026-06-15T15:45:00"},
+    {"flight_no": "AG102", "origin": "EGLL", "destination": "EDDL", "scheduled_departure": "2026-06-15T14:45:00", "scheduled_arrival": "2026-06-15T16:05:00"},
+    {"flight_no": "AG103", "origin": "EGLL", "destination": "EHAM", "scheduled_departure": "2026-06-15T16:20:00", "scheduled_arrival": "2026-06-15T17:35:00"},
+    {"flight_no": "AG104", "origin": "ESSA", "destination": "LFPO", "scheduled_departure": "2026-06-15T13:20:00", "scheduled_arrival": "2026-06-15T16:05:00"},
+    {"flight_no": "AG105", "origin": "EDDL", "destination": "LEBL", "scheduled_departure": "2026-06-15T16:00:00", "scheduled_arrival": "2026-06-15T18:15:00"}
+  ],
+  "expected_answers": {
+    "recommended_flight": "AG101",
+    "recommended_replacement_tail": "G-AGSA",
+    "must_not_recommend_flight": "AG103",
+    "must_not_recommend_tails": ["G-AGSB", "D-AGSC"],
+    "no_swap_variant": {
+      "change": "G-AGSA.ready_at -> 2026-06-15T13:35:00",
+      "expected": "no recommendation available"
+    }
+  }
+}
