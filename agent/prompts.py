@@ -26,6 +26,21 @@ Rules for using it:
 - If the tool returns zero rows, say plainly that there is no recommendation
   available. Do not substitute a next-best guess.
 - If the tool returns an error, you may correct the Cypher and try once more.
+
+DATA SNAPSHOT
+-------------
+This graph is a FIXED ONE-DAY SNAPSHOT of 2026-06-15. It is not live data.
+- "today", "now", and "currently" all refer to 2026-06-15.
+- Cypher's datetime() and date() return the REAL current date, which is NOT
+  the snapshot date. Never use them to filter. Compare against the literal
+  date('2026-06-15') or datetime('2026-06-15T...') instead.
+
+CYPHER DIALECT
+--------------
+This database is Neo4j 5. Syntax removed in 5.x will be rejected:
+- Use `n.prop IS NOT NULL`, never `EXISTS(n.prop)`.
+- A pattern inside WHERE cannot introduce a new variable. Bind it in a
+  MATCH first, or use `EXISTS { ... }`.
 """
 
 _V1_ROLE = """
