@@ -29,7 +29,21 @@ load_dotenv()
 
 CACHE_DIR = pathlib.Path(__file__).resolve().parent.parent / ".agent_cache"
 MAX_TOOL_CALLS = 2          # 1 initial attempt + 1 correction. Bounded on purpose.
-RPM_SLEEP_S = 7             # paces calls under a 10 RPM free-tier ceiling.
+RPM_SLEEP_S = 13            # measured 5 RPM free-tier ceiling (429 quotaValue='5').
+                            # 60/5 = 12s minimum; 13 for clock skew.
+
+_LAST_CALL_AT = 0.0         # module-level: paces ACROSS runs, not just within one.
+
+
+def _pace():
+    """The gate makes 10+ separate run() calls back to back. Per-run pacing
+    alone does not bound the global rate, because each run starts at
+    api_calls == 0 and skips its first sleep."""
+    global _LAST_CALL_AT
+    elapsed = time.time() - _LAST_CALL_AT
+    if elapsed < RPM_SLEEP_S:
+        time.sleep(RPM_SLEEP_S - elapsed)
+    _LAST_CALL_AT = time.time()
 
 TOOL_NAME = "execute_graph_query"
 TOOL_DESCRIPTION = (
@@ -153,7 +167,7 @@ class GeminiProvider:
         try:
             for _ in range(MAX_TOOL_CALLS):
                 if pace and run.api_calls:
-                    time.sleep(RPM_SLEEP_S)
+                    _pace()
                 resp = self.client.models.generate_content(
                     model=self.model, contents=contents, config=cfg
                 )
@@ -189,7 +203,7 @@ class GeminiProvider:
             else:
                 # Loop exhausted without the model producing a final answer.
                 if pace:
-                    time.sleep(RPM_SLEEP_S)
+                    _pace()
                 resp = self.client.models.generate_content(
                     model=self.model, contents=contents, config=cfg
                 )
@@ -198,5 +212,8 @@ class GeminiProvider:
         except Exception as e:
             run.error = f"{type(e).__name__}: {e}"
 
-        _cache_store(key, run, system_prompt)
+        # Only successful runs are cacheable. Caching an error replays it
+        # forever on a key that will never miss again.
+        if run.error is None:
+            _cache_store(key, run, system_prompt)
         return run
