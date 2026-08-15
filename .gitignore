@@ -6,3 +6,4 @@ data/interim/
 *.xlsx
 .env
 .agent_cache/
+.env.*
