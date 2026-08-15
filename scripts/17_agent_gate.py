@@ -255,7 +255,12 @@ def main():
     print(f"graph before: {before[0]} nodes / {before[1]} edges\n")
     results = []
     pname = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--provider=")),
-                 "gemini")
+                 None)
+    if pname is None:
+        sys.exit("--provider= is required (" + "|".join(PROVIDERS) + "). "
+                 "No default: run provenance must be explicit.")
+    if pname not in PROVIDERS:
+        sys.exit(f"unknown provider {pname!r} (expected: " + "|".join(PROVIDERS) + ")")
     provider = PROVIDERS[pname]()
     print(f"provider: {pname} / {provider.model}\n")
 
