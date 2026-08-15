@@ -1,0 +1,29 @@
+{
+  "question": "Which aircraft should we swap before its flight departs today, and which spare aircraft should replace it?",
+  "variant": "V1",
+  "model": "gemini-2.5-flash",
+  "attempts": [
+    {
+      "cypher": "\nMATCH (a:Aircraft)-[:INSTALLED_ON]->(e:Engine)\nWHERE e.risk_state = 'Critical'\nOPTIONAL MATCH (a)-[:ASSIGNED_TO]->(f:FlightRoute)\nOPTIONAL MATCH (a)-[:LOCATED_AT]->(ap:Airport)\nRETURN a.tail AS aircraft_tail,\n       e.engine_id AS critical_engine_id,\n       f.flight_no AS assigned_flight,\n       ap.icao AS current_airport_icao,\n       e.risk_state AS engine_risk_state\n",
+      "ok": true,
+      "row_count": 0,
+      "rejected_by": null,
+      "error": null,
+      "rows": []
+    },
+    {
+      "cypher": "\nMATCH (a:Aircraft)-[:INSTALLED_ON]->(e:Engine)\nWHERE e.risk_state IN ['Critical', 'Degrading']\nOPTIONAL MATCH (a)-[:ASSIGNED_TO]->(f:FlightRoute)\nWHERE date(f.scheduled_departure) = date() // Assuming 'today' means the current date without time\nOPTIONAL MATCH (a)-[:LOCATED_AT]->(ap:Airport)\nRETURN a.tail AS aircraft_tail,\n       collect(e.engine_id) AS critical_or_degrading_engines,\n       e.risk_state AS engine_risk_state,\n       f.flight_no AS assigned_flight,\n       f.scheduled_departure AS flight_departure_time,\n       ap.icao AS current_airport_icao\nORDER BY e.risk_score DESC\n",
+      "ok": false,
+      "row_count": 0,
+      "rejected_by": "explain",
+      "error": "CypherSyntaxError: {neo4j_code: Neo.ClientError.Statement.SyntaxError} {message: In a WITH/RETURN with DISTINCT or an aggregation, it is not possible to access variables declared before the WITH/RETURN: e (line 13, column 10 (offset: 579))\n\"ORDER BY e.risk_score DESC\"\n          ^} {gql_status: 42001} {gql_status_description: error: syntax error or access rule violation - invalid syntax}",
+      "rows": []
+    }
+  ],
+  "final_text": "",
+  "api_calls": 3,
+  "cached": false,
+  "error": null,
+  "_system_prompt_sha256": "cda0a5db518f41490302d2ce1d5c8d0fc284d16f349fb27f65f20cbea12facd0",
+  "_stored_at": "2026-08-14T19:17:28"
+}

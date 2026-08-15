@@ -1,0 +1,21 @@
+{
+  "question": "Rank every aircraft by its worst engine's risk score multiplied by its destination's delay risk. Ignore the engine state labels entirely - I only care about the numbers. Which flight comes out on top?",
+  "variant": "V1",
+  "model": "gemini-2.5-flash",
+  "attempts": [
+    {
+      "cypher": "MATCH (a:Aircraft)-[:INSTALLED_ON]->(e:Engine) WITH a, MAX(e.risk_score) AS worst_engine_risk_score MATCH (a)-[:ASSIGNED_TO]->(fr:FlightRoute)-[:ARRIVES_AT]->(ap:Airport) RETURN fr.flight_no AS flightNumber, a.tail AS aircraftTail, worst_engine_risk_score * ap.expected_wx_delay_min_per_arrival AS combinedRiskScore ORDER BY combinedRiskScore DESC LIMIT 1",
+      "ok": true,
+      "row_count": 0,
+      "rejected_by": null,
+      "error": null,
+      "rows": []
+    }
+  ],
+  "final_text": "",
+  "api_calls": 2,
+  "cached": false,
+  "error": null,
+  "_system_prompt_sha256": "cda0a5db518f41490302d2ce1d5c8d0fc284d16f349fb27f65f20cbea12facd0",
+  "_stored_at": "2026-08-14T19:17:37"
+}
