@@ -12,12 +12,21 @@ Explicitly NOT here, per the active scope fence: no auth, no multi-user, no
 chat history, no second query type. One request, one answer.
 """
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from agent.graph_tool import execute_graph_query
 from agent.prompts import build_system_prompt
 
 app = FastAPI(title="AeroGraph Layer 3", version="0.1.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class QueryIn(BaseModel):
