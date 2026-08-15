@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 
-function get_name(label, props) {
-    if (label === "Airport") return props.icao || "Unknown";
-    if (label === "MaintenanceHub") return props.hub_code || "Unknown";
-    if (label === "Aircraft") return props.tail || "Unknown";
-    if (label === "Engine") return String(props.engine_id || "Unknown");
-    if (label === "FlightRoute") return props.flight_no || "Unknown";
-    return "Unknown";
-}
+const NAME_KEY = {
+  Airport: 'icao', MaintenanceHub: 'hub_code', Aircraft: 'tail',
+  Engine: 'engine_id', FlightRoute: 'flight_no',
+};
 
 function App() {
   const [data, setData] = useState(null);
@@ -45,7 +41,7 @@ function App() {
         const nodes = resNodes.rows.map(r => ({
           id: r.id,
           label: r.label,
-          name: get_name(r.label, r.props)
+          name: String(r.props?.[NAME_KEY[r.label]] ?? r.label)
         }));
 
         const links = resLinks.rows.map(r => ({
