@@ -15,7 +15,7 @@ print("uri:", uri)
 with GraphDatabase.driver(uri, auth=(user, pwd)) as d:
     d.verify_connectivity()
     with d.session() as s:
-        rec = s.run("RETURN 1 AS ok, datetime() AS now =").single()
+        rec = s.run("RETURN 1 AS ok, datetime() AS now").single()
         print("ok:", rec["ok"], "| server time:", rec["now"])
         n = s.run("MATCH (n) RETURN count(n) AS n").single()["n"]
         print("existing nodes:", n)
