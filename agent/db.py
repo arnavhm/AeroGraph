@@ -18,6 +18,7 @@ def get_driver():
                 os.getenv("NEO4J_USERNAME") or os.environ["NEO4J_USER"],
                 os.environ["NEO4J_PASSWORD"],
             ),
+            max_connection_lifetime=200,
         )
     return _driver
 
