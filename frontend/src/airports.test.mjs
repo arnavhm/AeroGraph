@@ -4,6 +4,7 @@ import { AIRPORTS, getAirport } from './airports.js';
 
 test('AIRPORTS has exactly 6 keys', () => {
     const keys = Object.keys(AIRPORTS);
+    assert.strictEqual(keys.length, 6);
     const expected = ["EDDL", "EGLL", "EHAM", "ESSA", "LEBL", "LFPO"];
     for (const code of expected) {
         assert.ok(keys.includes(code), `Missing key ${code}`);
