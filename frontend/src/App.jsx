@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import GraphView from './GraphView.jsx';
 import GlobeView from './GlobeView.jsx';
+import AgentView from './AgentView.jsx';
 import { buildAdjacency, seedIds, expand } from './graphModel.js';
 import './layout.css';
 
@@ -8,6 +9,9 @@ const NAME_KEY = {
   Airport: 'icao', MaintenanceHub: 'hub_code', Aircraft: 'tail',
   Engine: 'engine_id', FlightRoute: 'flight_no',
 };
+
+const CANONICAL_QUESTION =
+  'Which aircraft should I swap to cover the flight most exposed to a critical engine?';
 
 function App() {
   const [error, setError] = useState(null);
@@ -18,6 +22,11 @@ function App() {
   const [viewMode, setViewMode] = useState('graph');
   const [visibleIds, setVisibleIds] = useState(new Set());
   const adjacencyRef = useRef(null);
+
+  const [askQuestion, setAskQuestion] = useState(CANONICAL_QUESTION);
+  const [v1Result, setV1Result] = useState(null);
+  const [v2Result, setV2Result] = useState(null);
+  const [askInFlight, setAskInFlight] = useState(false);
 
   useEffect(() => {
     const fetchGraph = async () => {
@@ -89,6 +98,36 @@ function App() {
     }
   };
 
+  const runAsk = async (useCache) => {
+    setAskInFlight(true);
+    setV1Result(null);
+    setV2Result(null);
+    const runVariant = async (variant, setResult) => {
+      try {
+        const res = await fetch('http://localhost:8000/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: askQuestion, variant, use_cache: useCache })
+        });
+        const text = await res.text();
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${text}`);
+        }
+        setResult(JSON.parse(text));
+      } catch (err) {
+        setResult(err instanceof Error ? err : new Error(String(err)));
+      }
+    };
+    await Promise.allSettled([
+      runVariant('V1', setV1Result),
+      runVariant('V2', setV2Result),
+    ]);
+    setAskInFlight(false);
+  };
+
+  const handleAskSubmit = () => runAsk(true);
+  const handleAskRerun = () => runAsk(false);
+
   if (loading) return <div>loading</div>;
   if (error) return <div>{error}</div>;
 
@@ -136,7 +175,15 @@ function App() {
         ) : viewMode === 'globe' ? (
           <GlobeView nodes={nodes} links={links} />
         ) : (
-          <div>Agent view</div>
+          <AgentView
+            question={askQuestion}
+            onQuestionChange={setAskQuestion}
+            onSubmit={handleAskSubmit}
+            onRerun={handleAskRerun}
+            inFlight={askInFlight}
+            v1Result={v1Result}
+            v2Result={v2Result}
+          />
         )}
       </div>
     </div>
