@@ -54,6 +54,13 @@ def query(body: QueryIn):
 def ask(body: AskIn):
     """Natural-language question -> tool-using LLM -> grounded answer."""
     from agent.llm import GeminiProvider
+    from agent.prompts import VALID_VARIANTS
+    from fastapi.responses import JSONResponse
+
+    if body.variant not in VALID_VARIANTS:
+        return JSONResponse(status_code=400, content={"error": f"Invalid variant {body.variant!r}. Valid variants are: {VALID_VARIANTS}"})
+
+
 
     try:
         provider = GeminiProvider()

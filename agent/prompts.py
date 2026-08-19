@@ -72,9 +72,12 @@ DOMAIN RULES (operational semantics of this graph)
 """
 
 
+VALID_VARIANTS = ("V1", "V2")
+
+
 def build_system_prompt(variant: str) -> str:
     """variant is 'V1' (schema only) or 'V2' (schema + domain rules)."""
-    if variant not in ("V1", "V2"):
+    if variant not in VALID_VARIANTS:
         raise ValueError(f"unknown prompt variant {variant!r}; expected 'V1' or 'V2'")
     schema = build_schema_text()
     parts = [_V1_ROLE, _CONTRACT, "GRAPH SCHEMA\n============\n", schema]
