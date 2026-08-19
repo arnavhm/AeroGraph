@@ -57,9 +57,9 @@ export default function GlobeView({ nodes, links }) {
         height={size.height}
         backgroundColor={COLOR.bg}
         polygonsData={countries}
-        polygonCapColor={COLOR.grid}
-        polygonSideColor={COLOR.border}
-        polygonStrokeColor={COLOR.accent}
+        polygonCapColor={() => COLOR.grid}
+        polygonSideColor={() => COLOR.border}
+        polygonStrokeColor={() => COLOR.accent}
         arcsData={arcs}
         arcStartLat={d => d.origin_lat}
         arcStartLng={d => d.origin_lon}
