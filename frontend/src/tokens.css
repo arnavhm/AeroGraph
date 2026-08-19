@@ -1,0 +1,28 @@
+:root {
+  color-scheme: dark;
+
+  /* chrome — new */
+  --ag-bg:          #0a0e14;
+  --ag-panel:       #111720;
+  --ag-border:      #1f2a37;
+  --ag-grid:        #1a2430;
+  --ag-accent:      #22d3ee;
+
+  /* text — existing values, unchanged */
+  --ag-text:        #e8eaed;
+  --ag-text-dim:    #8b93a1;
+
+  /* semantic — engine risk_state ONLY, existing values, unchanged */
+  --ag-critical:    #ff4d4f;
+  --ag-degrading:   #ffa940;
+  --ag-healthy:     #52c41a;
+
+  /* neutral node fills — existing values, unchanged */
+  --ag-aircraft:    #b8c4d0;
+  --ag-airport:     #8fa3b8;
+  --ag-flight:      #6b7a8a;
+  --ag-hub:         #566473;
+  --ag-link:        #4a5462;
+
+  --ag-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}

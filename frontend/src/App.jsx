@@ -92,46 +92,53 @@ function App() {
   if (loading) return <div>loading</div>;
   if (error) return <div>{error}</div>;
 
+  const VIEWS = [['graph', 'Graph'], ['globe', 'Globe'], ['agent', 'Agent']];
+
   return (
-    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative', margin: 0 }}>
-      <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 100 }}>
-        <button 
-          onClick={() => setViewMode('graph')}
-          style={{ 
-            marginRight: '5px', 
-            padding: '5px 10px', 
-            backgroundColor: viewMode === 'graph' ? '#ccc' : '#fff',
-            color: '#000',
-            border: '1px solid #999',
-            cursor: 'pointer'
-          }}
-        >
-          Graph
-        </button>
-        <button 
-          onClick={() => setViewMode('globe')}
-          style={{ 
-            padding: '5px 10px', 
-            backgroundColor: viewMode === 'globe' ? '#ccc' : '#fff',
-            color: '#000',
-            border: '1px solid #999',
-            cursor: 'pointer'
-          }}
-        >
-          Globe
-        </button>
+    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', margin: 0, display: 'flex', flexDirection: 'column' }}>
+      <header style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '10px 16px',
+        backgroundColor: 'var(--ag-panel)',
+        borderBottom: '1px solid var(--ag-border)',
+        color: 'var(--ag-text)'
+      }}>
+        <span>AeroGraph</span>
+        <div style={{ display: 'flex', gap: '5px' }}>
+          {VIEWS.map(([mode, label]) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              style={{
+                padding: '5px 10px',
+                backgroundColor: 'var(--ag-panel)',
+                color: viewMode === mode ? 'var(--ag-accent)' : 'var(--ag-text)',
+                border: `1px solid ${viewMode === mode ? 'var(--ag-accent)' : 'var(--ag-border)'}`,
+                cursor: 'pointer'
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </header>
+
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        {viewMode === 'graph' ? (
+          <GraphView
+            nodes={nodes}
+            links={links}
+            visibleIds={visibleIds}
+            onNodeClick={handleNodeClick}
+          />
+        ) : viewMode === 'globe' ? (
+          <GlobeView nodes={nodes} links={links} />
+        ) : (
+          <div>Agent view</div>
+        )}
       </div>
-      
-      {viewMode === 'graph' ? (
-        <GraphView 
-          nodes={nodes} 
-          links={links} 
-          visibleIds={visibleIds} 
-          onNodeClick={handleNodeClick} 
-        />
-      ) : (
-        <GlobeView nodes={nodes} links={links} />
-      )}
     </div>
   );
 }

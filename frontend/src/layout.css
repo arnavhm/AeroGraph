@@ -9,3 +9,13 @@ html, body, #root {
   place-items: normal;
   border: none;
 }
+
+html, body {
+  background: var(--ag-bg);
+  color: var(--ag-text);
+}
+
+.status-text {
+  color: var(--ag-text-dim);
+  font-family: var(--ag-mono);
+}
