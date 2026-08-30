@@ -26,6 +26,7 @@ require_venv()
 
 from agent.db import get_driver
 from agent.catalog import ACTIONS, load_cypher, validate_params
+from agent.action_tool import execute_action
 
 # Expected node and edge counts from scripts/15_gate.py (lines 19-33)
 EXP_NODES = {
@@ -97,18 +98,6 @@ def get_graph_shape():
     return n, e
 
 
-def execute_action(action_name: str, params: dict | None = None) -> list[dict]:
-    ok, reason, resolved = validate_params(action_name, params)
-    if not ok:
-        raise ValueError(f"validate_params failed: {reason}")
-    cypher = load_cypher(action_name)
-    drv = get_driver()
-    with drv.session(default_access_mode="READ") as s:
-        with s.begin_transaction(timeout=15) as tx:
-            res = tx.run(cypher, **resolved)
-            return [r.data() for r in res]
-
-
 def main():
     failures = []
 
@@ -151,7 +140,7 @@ def main():
 
     # --- ASSERTION C: Golden row on default execution ---
     try:
-        rows = execute_action("worst_exposure_swap", {})
+        rows = execute_action("worst_exposure_swap", {})["rows"]
         assert len(rows) >= 1, "Expected at least 1 row returned"
         golden_found = False
         for r in rows:
@@ -184,8 +173,26 @@ def main():
             neg_passed = False
         else:
             print(f"  [PASS] {desc}: correctly rejected ({reason})")
+    # Never-raises contract: execute_action must RETURN a catalog rejection for
+    # an invalid parameter, not raise (the gate's old local version raised).
+    try:
+        rej = execute_action("worst_exposure_swap", {"risk_state": "Nonexistent"})
+        if rej["ok"] is False and rej["rejected_by"] == "catalog":
+            print("  [PASS] execute_action with invalid param returned ok=False, rejected_by='catalog' without raising")
+        else:
+            failures.append(
+                f"Assertion D failed: execute_action invalid-param response wrong: "
+                f"ok={rej['ok']}, rejected_by={rej['rejected_by']}"
+            )
+            print(f"  [FAIL] execute_action invalid-param response wrong: {rej}")
+            neg_passed = False
+    except Exception as exc:
+        failures.append(f"Assertion D failed: execute_action raised on invalid param: {exc}")
+        print(f"  [FAIL] execute_action raised on invalid param: {exc}")
+        neg_passed = False
+
     if neg_passed:
-        print("[PASS] Assertion D: All 7 negative cases correctly rejected by validate_params")
+        print("[PASS] Assertion D: All 7 negative cases correctly rejected by validate_params, and execute_action returns (not raises) on invalid params")
     else:
         print("[FAIL] Assertion D: Some negative cases were not rejected")
 
@@ -218,8 +225,8 @@ def main():
     # --- ASSERTION G: Parameters are load-bearing ---
     try:
         # G1
-        default_rows = execute_action("worst_exposure_swap", {})
-        healthy_rows = execute_action("worst_exposure_swap", {"risk_state": "Healthy"})
+        default_rows = execute_action("worst_exposure_swap", {})["rows"]
+        healthy_rows = execute_action("worst_exposure_swap", {"risk_state": "Healthy"})["rows"]
         if default_rows == healthy_rows:
             failures.append("Assertion G1 failed: query ignored $risk_state")
             print(f"[FAIL] Assertion G1: Query ignored $risk_state")
@@ -229,7 +236,7 @@ def main():
             print("[PASS] Assertion G1: worst_exposure_swap with 'Healthy' returned different rows than default")
 
         # G2
-        limit3_rows = execute_action("worst_exposure_swap", {"limit": 3})
+        limit3_rows = execute_action("worst_exposure_swap", {"limit": 3})["rows"]
         assert len(limit3_rows) <= 3, f"Expected <= 3 rows, got {len(limit3_rows)}"
         print(f"  [INFO] limit=3 returned {len(limit3_rows)} rows")
         if len(limit3_rows) != len(default_rows):
