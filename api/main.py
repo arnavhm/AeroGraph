@@ -1,12 +1,18 @@
 """
 AeroGraph Layer 3 backend - FastAPI.
 
-Two routes, one tool:
-  POST /query  exposes execute_graph_query directly (the tool itself; also what
-               the criterion-5 graph visualisation will consume).
-  POST /ask    natural language -> Gemini -> generated Cypher -> guardrails ->
-               graph -> natural-language answer. This is the criterion-3 demo
-               surface.
+Routes:
+  POST /query   exposes execute_graph_query directly (the tool itself; also what
+                the criterion-5 graph visualisation will consume).
+  POST /ask     natural language -> Gemini -> generated Cypher -> guardrails ->
+                graph -> natural-language answer. This is the criterion-3 demo
+                surface.
+  POST /action  runs a pre-approved parameterised catalog action via
+                agent.action_tool.execute_action (Option D). Same response
+                shape as /query; never raises to the caller.
+  GET  /actions discovery: the catalog's action names, descriptions, and
+                parameter schemas. cypher_file is deliberately not exposed —
+                filesystem paths do not belong in an API response.
 
 Explicitly NOT here, per the active scope fence: no auth, no multi-user, no
 chat history, no second query type. One request, one answer.
@@ -39,6 +45,11 @@ class AskIn(BaseModel):
     use_cache: bool = True
 
 
+class ActionIn(BaseModel):
+    action: str
+    params: dict | None = None
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
@@ -48,6 +59,21 @@ def health():
 def query(body: QueryIn):
     """Run a read-only Cypher statement. Guardrailed; never raises to the caller."""
     return execute_graph_query(body.query)
+
+
+@app.post("/action")
+def action(body: ActionIn):
+    """Run a pre-approved parameterised action. Guardrailed by the catalog."""
+    from agent.action_tool import execute_action
+    return execute_action(body.action, body.params)
+
+
+@app.get("/actions")
+def actions():
+    """List available actions and their parameter schemas."""
+    from agent.catalog import ACTIONS
+    return {name: {"description": spec["description"], "params": spec["params"]}
+            for name, spec in ACTIONS.items()}
 
 
 @app.post("/ask")
