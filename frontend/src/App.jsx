@@ -10,8 +10,11 @@ const NAME_KEY = {
   Engine: 'engine_id', FlightRoute: 'flight_no',
 };
 
+// T1 verbatim from scripts/17_agent_gate.py — the question the gate, the
+// failure-mechanism catalogue, and the action catalog are anchored to.
 const CANONICAL_QUESTION =
-  'Which aircraft should I swap to cover the flight most exposed to a critical engine?';
+  'Which aircraft should we swap before its flight departs today, and which ' +
+  'spare aircraft should replace it?';
 
 function App() {
   const [error, setError] = useState(null);
@@ -27,6 +30,8 @@ function App() {
   const [v1Result, setV1Result] = useState(null);
   const [v2Result, setV2Result] = useState(null);
   const [askInFlight, setAskInFlight] = useState(false);
+  const [actionResult, setActionResult] = useState(null);
+  const [actionInFlight, setActionInFlight] = useState(false);
 
   useEffect(() => {
     const fetchGraph = async () => {
@@ -128,6 +133,26 @@ function App() {
   const handleAskSubmit = () => runAsk(true);
   const handleAskRerun = () => runAsk(false);
 
+  const runAction = async () => {
+    setActionInFlight(true);
+    setActionResult(null);
+    try {
+      const res = await fetch('http://localhost:8000/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'worst_exposure_swap', params: null })
+      });
+      const text = await res.text();
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${text}`);
+      }
+      setActionResult(JSON.parse(text));
+    } catch (err) {
+      setActionResult(err instanceof Error ? err : new Error(String(err)));
+    }
+    setActionInFlight(false);
+  };
+
   if (loading) return <div>loading</div>;
   if (error) return <div>{error}</div>;
 
@@ -183,6 +208,9 @@ function App() {
             inFlight={askInFlight}
             v1Result={v1Result}
             v2Result={v2Result}
+            actionResult={actionResult}
+            actionInFlight={actionInFlight}
+            onRunAction={runAction}
           />
         )}
       </div>

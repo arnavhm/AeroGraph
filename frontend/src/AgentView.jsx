@@ -1,5 +1,6 @@
 import React from 'react';
 import { resultFields, divergenceState, DIVERGENCE } from './agentModel.js';
+import ActionResult from './ActionResult.jsx';
 
 // Props contract (fetching lives in App.jsx, not here):
 //   question        string
@@ -157,6 +158,9 @@ export default function AgentView({
   inFlight,
   v1Result,
   v2Result,
+  actionResult,
+  actionInFlight,
+  onRunAction,
 }) {
   const bothComparable = isComparable(v1Result) && isComparable(v2Result);
   const marker = bothComparable
@@ -208,6 +212,16 @@ export default function AgentView({
       <div style={{ display: 'flex', gap: '12px', marginTop: '12px', alignItems: 'flex-start' }}>
         <ResultColumn variantLabel="V1" result={v1Result} inFlight={inFlight} />
         <ResultColumn variantLabel="V2" result={v2Result} inFlight={inFlight} />
+      </div>
+
+      <div style={{ marginTop: '16px' }}>
+        <div style={{ color: 'var(--ag-text-dim)', fontSize: '12px', margin: '0 0 6px' }}>
+          Pre-approved action — fixed join, parameters only. Does not read the question box.
+        </div>
+        <button disabled={actionInFlight} onClick={onRunAction} style={controlStyle(actionInFlight)}>
+          Run action: worst_exposure_swap
+        </button>
+        <ActionResult result={actionResult} inFlight={actionInFlight} />
       </div>
     </div>
   );
