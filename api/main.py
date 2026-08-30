@@ -4,9 +4,9 @@ AeroGraph Layer 3 backend - FastAPI.
 Routes:
   POST /query   exposes execute_graph_query directly (the tool itself; also what
                 the criterion-5 graph visualisation will consume).
-  POST /ask     natural language -> Gemini -> generated Cypher -> guardrails ->
-                graph -> natural-language answer. This is the criterion-3 demo
-                surface.
+  POST /ask     natural language -> selected provider (agent.llm.PROVIDERS,
+                default groq) -> generated Cypher -> guardrails -> graph ->
+                natural-language answer. This is the criterion-3 demo surface.
   POST /action  runs a pre-approved parameterised catalog action via
                 agent.action_tool.execute_action (Option D). Same response
                 shape as /query; never raises to the caller.
@@ -43,6 +43,7 @@ class AskIn(BaseModel):
     question: str
     variant: str = "V2"
     use_cache: bool = True
+    provider: str = "groq"
 
 
 class ActionIn(BaseModel):
@@ -79,17 +80,18 @@ def actions():
 @app.post("/ask")
 def ask(body: AskIn):
     """Natural-language question -> tool-using LLM -> grounded answer."""
-    from agent.llm import GeminiProvider
+    from agent.llm import PROVIDERS
     from agent.prompts import VALID_VARIANTS
     from fastapi.responses import JSONResponse
 
     if body.variant not in VALID_VARIANTS:
         return JSONResponse(status_code=400, content={"error": f"Invalid variant {body.variant!r}. Valid variants are: {VALID_VARIANTS}"})
 
-
+    if body.provider not in PROVIDERS:
+        return JSONResponse(status_code=400, content={"error": f"Invalid provider {body.provider!r}. Valid providers are: {sorted(PROVIDERS)}"})
 
     try:
-        provider = GeminiProvider()
+        provider = PROVIDERS[body.provider]()
     except RuntimeError as e:
         return {"ok": False, "error": str(e)}
 
@@ -100,6 +102,7 @@ def ask(body: AskIn):
         "ok": run.error is None,
         "question": run.question,
         "variant": run.variant,
+        "provider": provider.name,
         "model": run.model,
         "cached": run.cached,
         "api_calls": run.api_calls,

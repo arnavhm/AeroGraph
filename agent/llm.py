@@ -8,6 +8,9 @@ optionality without committing to a provider swap now, which would deviate
 from charter section 7 ("bound to Gemini 2.5 Flash") and needs a logged
 decision rather than momentum.
 
+api/main.py imports the PROVIDERS dict below to route /ask requests, so the
+set of valid provider names is defined here and only here (AG-11.1).
+
 Automatic function calling is DISABLED. The loop is driven manually so every
 Cypher string the model produces is captured, validated and logged before it
 reaches the database. With automatic FC the SDK would call the tool for us and
