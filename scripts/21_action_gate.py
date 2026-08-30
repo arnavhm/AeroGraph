@@ -10,6 +10,11 @@ Asserts:
      invalid enum, out of bounds int, wrong types including bool).
   E. SQL/Cypher injection strings are rejected by enum validation, and valid params
      are bound directly by the driver without string formatting.
+  G. $risk_state and $limit are load-bearing rather than ignored, verified three
+     ways: a different parameter value returns different rows (G1), a different
+     limit is honoured (G2), and the loaded Cypher text contains the parameter
+     placeholders and no hardcoded literals (G3). Runs before F deliberately —
+     F must run last.
   F. Graph shape is unchanged after all runs.
 """
 import sys, pathlib, importlib.util
@@ -38,6 +43,11 @@ EXP_EDGES = {
     "ARRIVES_AT": 5,
     "SITUATED_AT": 3,
 }
+
+# Assertion groups actually run by main(), in execution order (G before F is
+# deliberate: F compares graph shape after everything else has executed).
+# Single source of truth for the summary line's count.
+ASSERTION_GROUPS = ("A", "B", "C", "D", "E", "G", "F")
 
 # Value comparison oracle approach copied from scripts/17_agent_gate.py
 FLOAT_TOL = 1e-6
@@ -254,7 +264,7 @@ def main():
     print("SUMMARY")
     print("=" * 72)
     if not failures:
-        print("ALL ASSERTIONS PASSED (6/6)")
+        print(f"ALL ASSERTIONS PASSED ({len(ASSERTION_GROUPS)}/{len(ASSERTION_GROUPS)})")
         return 0
     else:
         print(f"FAILURES DETECTED ({len(failures)}):")
