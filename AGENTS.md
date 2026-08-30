@@ -170,9 +170,11 @@ what you intend. A glob meant for scratch files once deleted 11 committed ones.
 1. `git status --short` before staging. List explicitly what is there.
 2. **Explicit per-file `git add`. Never `git add -A`.**
 3. `git status --short` and `git diff --stat --cached` after staging, pasted raw.
-4. Confirm nothing unexpected is staged. `scripts/19_groq_probe.py` and
-   `scripts/20_groq_tool_probe.py` are deliberately untracked and must never
-   appear in a commit.
+4. Confirm nothing unexpected is staged. Evidence scripts under `scripts/` are tracked,
+   including provider probes (`19_groq_probe.py`, `20_groq_tool_probe.py`) and
+   collection harnesses (`23_collect_t1.py`). A script that produced evidence is itself
+   evidence of how that evidence was produced. Their run artifacts are not tracked —
+   output under `data/interim/` is gitignored and stays that way.
 5. Check whether an existing `.gitignore` rule silently excludes something that
    should be tracked this time.
 

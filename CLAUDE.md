@@ -68,16 +68,16 @@ agent/         # db.py           driver + connection lifetime
 cypher/
   killer_query.cypher   # criterion 4 — the tail-swap query, hand-authored
   actions/              # parameterised actions for constrained generation
-scripts/       # 01–22, numbered and ordered. Load-bearing:
+scripts/       # 01–23, numbered and ordered. Load-bearing:
                #   14_ingest.py        idempotent, opens with DETACH DELETE
                #   15_gate.py          node/edge counts + temporal types
                #   16_query_gate.py    killer query + both sabotage controls
                #   17_agent_gate.py    agent run capture
                #   18_oracle_selftest.py  row-based oracle
-               #   21_action_gate.py   Option D — self-reported count is WRONG,
-               #                       prints 6/6 with seven assertion groups
+               #   21_action_gate.py   Option D
                #   22_graph_dump.py    graph inspection
-               # 19_ and 20_groq_probe are deliberately untracked.
+               # 19_, 20_ (probes) and 23_ (collection) are tracked as
+               # evidence. Their output under data/interim/ is not.
 frontend/      # Vite + React 19
   src/
     App.jsx           # fetch once, own visibleIds + viewMode, delegate
