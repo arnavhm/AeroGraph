@@ -34,9 +34,11 @@ def main():
     parser = argparse.ArgumentParser(description="Collect T1 observations")
     parser.add_argument("--runs", type=int, default=10, help="Number of runs")
     parser.add_argument("--provider", type=str, default="groq", help="LLM Provider")
+    parser.add_argument("--out-dir", type=str, default="t1_runs",
+                        help="Subdirectory under data/interim/")
     args = parser.parse_args()
 
-    out_dir = os.path.join(project_root, "data", "interim", "t1_runs")
+    out_dir = os.path.join(project_root, "data", "interim", args.out_dir)
     os.makedirs(out_dir, exist_ok=True)
 
     url = "http://localhost:8000/ask"
